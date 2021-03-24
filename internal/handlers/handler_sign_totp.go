@@ -45,6 +45,7 @@ func SecondFactorTOTPPost(totpVerifier TOTPVerifier) middlewares.RequestHandler 
 		}
 
 		userSession.AuthenticationLevel = authentication.TwoFactor
+		userSession.LastTwoFactorChallenge = ctx.Clock.Now().Unix()
 		err = ctx.SaveSession(userSession)
 
 		if err != nil {

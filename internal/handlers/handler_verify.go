@@ -191,6 +191,20 @@ func hasUserBeenInactiveTooLong(ctx *middlewares.AutheliaCtx) (bool, error) { //
 	return false, nil
 }
 
+func updateAuthLevel(ctx *middlewares.AutheliaCtx) session.UserSession {
+	userSession := ctx.GetSession()
+	twoFactorExpiryTime := int64(60 * 30)
+
+	if userSession.AuthenticationLevel == authentication.TwoFactor {
+		fmt.Println("user last ", ctx.Clock.Now().Unix()-userSession.LastActivity, ctx.Clock.Now().Unix()-userSession.LastTwoFactorChallenge)
+		if ctx.Clock.Now().Unix() > userSession.LastTwoFactorChallenge+twoFactorExpiryTime {
+			userSession.AuthenticationLevel = authentication.OneFactor
+			ctx.SaveSession(userSession)
+		}
+	}
+	return userSession
+}
+
 // verifySessionCookie verifies if a user is identified by a cookie.
 func verifySessionCookie(ctx *middlewares.AutheliaCtx, targetURL *url.URL, userSession *session.UserSession, refreshProfile bool,
 	refreshProfileInterval time.Duration) (username, name string, groups, emails []string, authLevel authentication.Level, err error) {
@@ -440,8 +454,8 @@ func verifyAuth(ctx *middlewares.AutheliaCtx, targetURL *url.URL, refreshProfile
 		username, name, groups, emails, authLevel, err = verifyBasicAuth(authHeader, authValue, *targetURL, ctx)
 		return
 	}
-
-	userSession := ctx.GetSession()
+	fmt.Printf("ciao")
+	userSession := updateAuthLevel(ctx)
 	username, name, groups, emails, authLevel, err = verifySessionCookie(ctx, targetURL, &userSession, refreshProfile, refreshProfileInterval)
 
 	sessionUsername := ctx.Request.Header.Peek(SessionUsernameHeader)

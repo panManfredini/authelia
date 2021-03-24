@@ -32,9 +32,10 @@ type UserSession struct {
 	Groups []string
 	Emails []string
 
-	KeepMeLoggedIn      bool
-	AuthenticationLevel authentication.Level
-	LastActivity        int64
+	KeepMeLoggedIn         bool
+	AuthenticationLevel    authentication.Level
+	LastActivity           int64
+	LastTwoFactorChallenge int64
 
 	// The challenge generated in first step of U2F registration (after identity verification) or authentication.
 	// This is used reused in the second phase to check that the challenge has been completed.
